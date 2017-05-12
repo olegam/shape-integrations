@@ -115,7 +115,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
 
       module.exports.runTest(projectsDir, projectIdentifier, testIdentifier, function (err, res) {
         if (err) return failureResponse(context, err)
-        
+
         const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
         const resultPath = resultFolder + Date.now() + '-result.json'
         s3.putObject({
