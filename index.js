@@ -104,6 +104,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
     },
     lambdaPostRunTest: function (event, context) {
       console.log(event)
+      console.log(process.env)
 
       const projectIdentifier = event.pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
