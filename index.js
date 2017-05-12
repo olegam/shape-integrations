@@ -64,31 +64,39 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       console.log('path:', path)
 
       module.exports.getAllProjects(projectsDir, function (err, projects) {
-
+        if (err) return context.fail(err)
         successResponse(context, {projects: projects})
       })
     },
     lambdaGetProjectDetails: function(event, context) {
       console.log(event)
 
-      const projectIdentifier = event.pathParameters.projectId
+      const projectIdentifier = event.pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
 
-      module.exports.getTestsForProject(projectsDir, projectIdentifier, function (err, project) {
+      module.exports.getAllProjects(projectsDir, function (err, projects) {
+        if (err) return context.fail(err)
 
-        successResponse(context, project)
+        const project = projects.filter(p => p.identifier === projectIdentifier)[0]
+        if (!project) return context.fail(new Error('Unknown  project identifier: ' + projectIdentifier))
+
+        module.exports.getTestsForProject(projectsDir, projectIdentifier, function (err, tests) {
+          if (err) return context.fail(err)
+          project.tests = tests
+          successResponse(context, project)
+        })
       })
     },
     lambdaPostRunTest: function (event, context) {
       console.log(event)
 
-      const projectIdentifier = event.pathParameters.projectId
+      const projectIdentifier = event.pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
       const testIdentifier = event.pathParameters.testId
       console.log('testIdentifier:', testIdentifier)
 
       module.exports.runTest(projectsDir, projectIdentifier, testIdentifier, function (err, res) {
-
+        if (err) return context.fail(err)
         successResponse(context, res, 201)
       })
     }
