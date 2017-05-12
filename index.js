@@ -46,7 +46,7 @@ module.exports.runTest = function(projectsDir, projectIdentifier, testIdentifier
 }
 
 
-const successResponse = function (bodyObject, statusCode = 200) {
+const successResponse = function (context, bodyObject, statusCode = 200) {
   const res = {
     "statusCode":statusCode,
     "body": JSON.stringify(bodyObject)
@@ -64,7 +64,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
 
       module.exports.getAllProjects(projectsDir, function (err, projects) {
 
-        successResponse({projects: projects})
+        successResponse(context, {projects: projects})
       })
     },
     lambdaGetProjectDetails: function(event, context) {
@@ -75,7 +75,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
 
       module.exports.getTestsForProject(projectsDir, projectIdentifier, function (err, project) {
 
-        successResponse(project)
+        successResponse(context, project)
       })
     },
     lambdaPostRunTest: function (event, context) {
@@ -87,7 +87,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
 
       module.exports.runTest(projectsDir, projectIdentifier, testIdentifier, function (err, res) {
 
-        successResponse(res)
+        successResponse(context, res, 201)
       })
     }
   }
