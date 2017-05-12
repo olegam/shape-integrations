@@ -45,17 +45,38 @@ module.exports.runTest = function(projectsDir, projectIdentifier, testIdentifier
   })
 }
 
-module.exports.makeLambdaHandler = function(projectsDir) {
-  return function(event, context) {
-    console.log(event)
 
-    module.exports.getAllProjects(projectsDir, function (err, projects) {
-      let res = {
-        "headers":{},
-        "statusCode":200,
-        "body": JSON.stringify({projects: projects})
-      }
-      context.succeed(res)
-    })
+const successResponse = function (bodyObject, statusCode = 200) {
+  const res = {
+    "statusCode":statusCode,
+    "body": JSON.stringify(bodyObject)
+  }
+  context.succeed(res)
+}
+
+module.exports.makeLambdaHandlers = function(projectsDir) {
+  return {
+    lambdaGetAllProjects: function(event, context) {
+      console.log(event)
+
+      const path = event.path
+      console.log('path:', path)
+
+      module.exports.getAllProjects(projectsDir, function (err, projects) {
+
+        successResponse({projects: projects})
+      })
+    },
+    lambdaGetProjectDetails: function(event, context) {
+      console.log(event)
+
+      const projectIdentifier = event.pathParameters.projectId
+      console.log('projectId:', projectIdentifier)
+
+      module.exports.getTestsForProject(projectsDir, projectIdentifier, function (err, project) {
+
+        successResponse(project)
+      })
+    },
   }
 }
