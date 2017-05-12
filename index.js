@@ -31,6 +31,7 @@ module.exports.getTestsForProject = function(projectsDir, projectIdentifier, cal
     return test
   })
   console.log(tests)
+  callback(null, tests)
 }
 
 module.exports.runTest = function(projectsDir, projectIdentifier, testIdentifier, callback) {
@@ -84,6 +85,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       const projectIdentifier = event.pathParameters.projectId
       console.log('projectId:', projectIdentifier)
       const testIdentifier = event.pathParameters.testId
+      console.log('testIdentifier:', testIdentifier)
 
       module.exports.runTest(projectsDir, projectIdentifier, testIdentifier, function (err, res) {
 
