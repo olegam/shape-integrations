@@ -48,9 +48,22 @@ module.exports.runTest = function(projectsDir, projectIdentifier, testIdentifier
 
 
 const successResponse = function (context, bodyObject, statusCode = 200) {
+  bodyObject.status = 'ok'
   const res = {
     "statusCode":statusCode,
     "body": JSON.stringify(bodyObject)
+  }
+  context.succeed(res)
+}
+
+const failureResponse = function (context, err, statusCode = 500) {
+  const body = {
+    status: 'error',
+    err: err || {}
+  }
+  const res = {
+    "statusCode":statusCode,
+    "body": JSON.stringify(body)
   }
   context.succeed(res)
 }
@@ -64,7 +77,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       console.log('path:', path)
 
       module.exports.getAllProjects(projectsDir, function (err, projects) {
-        if (err) return context.fail(err)
+        if (err) return failureResponse(context, err)
         successResponse(context, {projects: projects})
       })
     },
@@ -75,13 +88,13 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       console.log('projectId:', projectIdentifier)
 
       module.exports.getAllProjects(projectsDir, function (err, projects) {
-        if (err) return context.fail(err)
+        if (err) return failureResponse(context, err)
 
         const project = projects.filter(p => p.identifier === projectIdentifier)[0]
-        if (!project) return context.fail(new Error('Unknown  project identifier: ' + projectIdentifier))
+        if (!project) return failureResponse(context, new Error('Unknown  project identifier: ' + projectIdentifier), 400)
 
         module.exports.getTestsForProject(projectsDir, projectIdentifier, function (err, tests) {
-          if (err) return context.fail(err)
+          if (err) return failureResponse(context, err)
           project.tests = tests
           successResponse(context, project)
         })
@@ -96,7 +109,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       console.log('testIdentifier:', testIdentifier)
 
       module.exports.runTest(projectsDir, projectIdentifier, testIdentifier, function (err, res) {
-        if (err) return context.fail(err)
+        if (err) return failureResponse(context, err)
         successResponse(context, res, 201)
       })
     }
