@@ -50,8 +50,8 @@ module.exports.runTest = function(projectsDir, projectIdentifier, testIdentifier
 const successResponse = function (context, bodyObject, statusCode = 200) {
   bodyObject.status = 'ok'
   const res = {
-    "statusCode":statusCode,
-    "body": JSON.stringify(bodyObject)
+    statusCode: statusCode,
+    body: JSON.stringify(bodyObject)
   }
   console.log('Successful request with response:', bodyObject)
   context.succeed(res)
@@ -119,7 +119,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
         const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
         const resultPath = resultFolder + Date.now() + '-result.json'
         const resultLatestPath = resultFolder +'latest-result.json'
-        
+
         const saveToBucket = function (path, callback) {
           s3.putObject({
             Bucket: testResultsBucket,
