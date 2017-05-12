@@ -49,7 +49,7 @@ module.exports.makeLambdaHandler = function(projectsDir) {
   return function(event, context) {
     console.log(event)
 
-    Integration.getAllProjects(projectsDir, function (err, projects) {
+    module.exports.getAllProjects(projectsDir, function (err, projects) {
       let res = {
         "headers":{},
         "statusCode":200,
