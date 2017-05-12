@@ -51,7 +51,10 @@ const successResponse = function (context, bodyObject, statusCode = 200) {
   bodyObject.status = 'ok'
   const res = {
     statusCode: statusCode,
-    body: JSON.stringify(bodyObject)
+    body: JSON.stringify(bodyObject),
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
   }
   console.log('Successful request with response:', bodyObject)
   context.succeed(res)
