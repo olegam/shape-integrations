@@ -2,6 +2,8 @@
 
 const fs = require('fs')
 const path = require('path')
+const aws = require('aws-sdk')
+const s3 = new aws.S3()
 
 module.exports.getAllProjects = function(projectsDir, callback) {
   const getSubDirNames = p => fs.readdirSync(p).filter(f => fs.statSync(p+"/"+f).isDirectory())
@@ -41,9 +43,7 @@ module.exports.runTest = function(projectsDir, projectIdentifier, testIdentifier
   const descriptorPath = path.resolve(projectsDir, projectIdentifier, 'project.json')
   let projectDescriptor = require(descriptorPath)
 
-  testModule.testFunction(projectDescriptor, function(err, res) {
-    callback(err, res)
-  })
+  testModule.testFunction(projectDescriptor, callback)
 }
 
 
@@ -111,9 +111,21 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       const testIdentifier = event.pathParameters.testId
       console.log('testIdentifier:', testIdentifier)
 
+      const testResultsBucket = process.env.TEST_RESULTS_BUCKET
+
       module.exports.runTest(projectsDir, projectIdentifier, testIdentifier, function (err, res) {
         if (err) return failureResponse(context, err)
-        successResponse(context, res, 201)
+        
+        const resultFolder = projectIdentifier + '/' + testIdentifier + '/'
+        const resultPath = resultFolder + Date.now() + '-result.json'
+        s3.putObject({
+          Bucket: testResultsBucket,
+          Key: resultPath,
+          Body: JSON.stringify(res)
+        }, function (err, putRes) {
+          if (err) return failureResponse(context, err)
+          successResponse(context, res, 201)
+        })
       })
     }
   }
