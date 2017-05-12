@@ -55,7 +55,7 @@ const successResponse = function (bodyObject, statusCode = 200) {
 }
 
 module.exports.makeLambdaHandlers = function(projectsDir) {
-  return {
+  const handlers = {
     lambdaGetAllProjects: function(event, context) {
       console.log(event)
 
@@ -78,5 +78,18 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
         successResponse(project)
       })
     },
+    lambdaPostRunTest: function (event, context) {
+      console.log(event)
+
+      const projectIdentifier = event.pathParameters.projectId
+      console.log('projectId:', projectIdentifier)
+      const testIdentifier = event.pathParameters.testId
+
+      module.exports.runTest(projectsDir, projectIdentifier, testIdentifier, function (err, res) {
+
+        successResponse(res)
+      })
+    }
   }
+  return handlers
 }
