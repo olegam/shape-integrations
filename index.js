@@ -89,7 +89,8 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
     lambdaGetProjectDetails: function(event, context) {
       console.log(event)
 
-      const projectIdentifier = event.pathParameters.projectId.toLowerCase()
+      let pathParameters = event.pathParameters || {}
+      const projectIdentifier = pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
 
       module.exports.getAllProjects(projectsDir, function (err, projects) {
@@ -109,9 +110,10 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       console.log(event)
       console.log(process.env)
 
-      const projectIdentifier = event.pathParameters.projectId.toLowerCase()
+      let pathParameters = event.pathParameters || {}
+      const projectIdentifier = pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
-      const testIdentifier = event.pathParameters.testId
+      const testIdentifier = pathParameters.testId
       console.log('testIdentifier:', testIdentifier)
 
       const testResultsBucket = process.env.TEST_RESULTS_BUCKET
