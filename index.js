@@ -89,7 +89,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
     lambdaGetProjectDetails: function(event, context) {
       console.log(event)
 
-      let pathParameters = event.pathParameters || {}
+      let pathParameters = event.pathParameters || {projectId: ''}
       const projectIdentifier = pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
 
@@ -110,7 +110,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       console.log(event)
       console.log(process.env)
 
-      let pathParameters = event.pathParameters || {}
+      let pathParameters = event.pathParameters || {projectId: '', testId: ''}
       const projectIdentifier = pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
       const testIdentifier = pathParameters.testId
