@@ -43,7 +43,20 @@ module.exports.runTest = function(projectsDir, projectIdentifier, testIdentifier
   const descriptorPath = path.resolve(projectsDir, projectIdentifier, 'project.json')
   let projectDescriptor = require(descriptorPath)
 
-  testModule.testFunction(projectDescriptor, callback)
+  const logger = {
+    logStatements: [],
+    logRequest: function (res) {
+
+    },
+    log: function (str) {
+
+    }
+  }
+  const startTime = Date.now()
+  testModule.testFunction(projectDescriptor, logger, function (err, res) {
+    res.duration = Date.now() - startTime
+    callback(err, res)
+  })
 }
 
 
@@ -51,7 +64,8 @@ const successResponse = function (context, bodyObject, statusCode = 200) {
   bodyObject.status = 'ok'
   const res = {
     statusCode: statusCode,
-    body: JSON.stringify(bodyObject)
+    body: JSON.stringify(bodyObject),
+    headers: {'Access-Control-Allow-Origin': '*'}
   }
   console.log('Successful request with response:', bodyObject)
   context.succeed(res)
