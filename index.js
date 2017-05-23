@@ -162,14 +162,19 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
           const resultLatestPath = resultFolder + 'latest-result.json'
 
           const saveToBucket = function(path, callback) {
-            s3.putObject(
-              {
-                Bucket: testResultsBucket,
-                Key: path,
-                Body: JSON.stringify(res)
-              },
-              callback
-            )
+            if (process.env.LOCAL) {
+              console.log(res)
+              callback(null)
+            } else {
+              s3.putObject(
+                {
+                  Bucket: testResultsBucket,
+                  Key: path,
+                  Body: JSON.stringify(res)
+                },
+                callback
+              )
+            }
           }
 
           saveToBucket(resultPath, function(err, putRes) {
