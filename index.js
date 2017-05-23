@@ -5,6 +5,22 @@ const path = require('path')
 const aws = require('aws-sdk')
 const s3 = new aws.S3()
 
+const accessValidation = function(accessKey, specificPassword, cb) {
+  const allAccessPassword = process.env.ALL_ACCESS_PASSWORD
+
+  const callback = typeof specificPassword === 'function'
+    ? specificPassword
+    : cb
+
+  const notEqualToSpecificPassword =
+    allAccessPassword && accessKey !== allAccessPassword
+  const notEqualToAllAccessPassword = specificPassword !== accessKey
+
+  if (!accessKey || notEqualToSpecificPassword || notEqualToAllAccessPassword) {
+    callback(new Error('No Access'))
+  }
+}
+
 module.exports.getAllProjects = function(projectsDir, callback) {
   const getSubDirNames = p =>
     fs.readdirSync(p).filter(f => fs.statSync(p + '/' + f).isDirectory())
@@ -46,6 +62,7 @@ module.exports.runTest = function(
   projectsDir,
   projectIdentifier,
   testIdentifier,
+  accessKey,
   callback
 ) {
   const testsDir = path.resolve(projectsDir, projectIdentifier, 'tests')
@@ -57,6 +74,12 @@ module.exports.runTest = function(
     'project.json'
   )
   let projectDescriptor = require(descriptorPath)
+
+  // Access Control
+  accessValidation(accessKey, projectDescriptor.accessKey, function(err) {
+    callback(new Error('Access denied'))
+    return
+  })
 
   const logger = {
     logStatements: [],
@@ -97,7 +120,14 @@ const failureResponse = function(context, err, statusCode = 500) {
 module.exports.makeLambdaHandlers = function(projectsDir) {
   const handlers = {
     lambdaGetAllProjects: function(event, context) {
-      console.log(event)
+      const accessKey = event.accessKey
+
+      accessValidation(event.accessKey, function(err) {
+        if (err) {
+          failureResponse(context, new Error('Access denied'))
+          return
+        }
+      })
 
       const path = event.path
       console.log('path:', path)
@@ -110,11 +140,21 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
     lambdaGetProjectDetails: function(event, context) {
       console.log(event)
 
-      let pathParameters = event.pathParameters || { projectId: '' }
+      const pathParameters = event.pathParameters || { projectId: '' }
       const projectIdentifier = pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
 
-      module.exports.getAllProjects(projectsDir, function(err, projects) {
+      accessValidation(event.pathParameters.accessKey, function(err) {
+        if (err) {
+          failureResponse(context, new Error('Access denied'))
+          return
+        }
+      })
+
+      module.exports.getAllProjects(projectsDir, accessKey, function(
+        err,
+        projects
+      ) {
         if (err) return failureResponse(context, err)
 
         const project = projects.filter(
@@ -142,11 +182,15 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       console.log(event)
       console.log(process.env)
 
-      let pathParameters = event.pathParameters || { projectId: '', testId: '' }
+      let pathParameters = event.pathParameters || {
+        projectId: '',
+        testId: ''
+      }
       const projectIdentifier = pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
       const testIdentifier = pathParameters.testId
       console.log('testIdentifier:', testIdentifier)
+      const accessKey = pathParameters.accessKey
 
       const testResultsBucket = process.env.TEST_RESULTS_BUCKET
 
@@ -154,6 +198,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
         projectsDir,
         projectIdentifier,
         testIdentifier,
+        accessKey,
         function(err, res) {
           if (err) return failureResponse(context, err)
 
