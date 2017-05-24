@@ -5,7 +5,7 @@ const path = require('path')
 const aws = require('aws-sdk')
 const s3 = new aws.S3()
 
-const project = require('./lib/project')
+const projecthelper = require('./lib/project')
 const request = require('./lib/request')
 const successResponse = request.successResponse
 const failureResponse = request.failureResponse
@@ -14,19 +14,17 @@ const accessValidation = request.accessValidation
 module.exports.makeLambdaHandlers = function(projectsDir) {
   const handlers = {
     lambdaGetAllProjects: function(event, context) {
-      const accessKey = event.accessKey
+      const accessKey = (event.pathParameters || {}).accessKey
 
       const path = event.path
       console.log('path:', path)
 
-      project.getAllProjects(projectsDir, accessKey, function(err, projects) {
+      projecthelper.getAllProjects(projectsDir, function(err, projects) {
         if (err) return failureResponse(context, err)
         successResponse(context, { projects: projects })
       })
     },
     lambdaGetProjectDetails: function(event, context) {
-      console.log(event)
-
       const pathParameters = event.pathParameters || { projectId: '' }
       const projectIdentifier = pathParameters.projectId.toLowerCase()
       console.log('projectId:', projectIdentifier)
@@ -38,7 +36,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       //   }
       // })
 
-      project.getProject(projectsDir, projectIdentifier, function(
+      projecthelper.getProject(projectsDir, projectIdentifier, function(
         err,
         project
       ) {
@@ -46,11 +44,11 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
         if (!project)
           return failureResponse(
             context,
-            new Error('Unknown  project identifier: ' + projectIdentifier),
+            new Error('Unknown project identifier: ' + projectIdentifier),
             400
           )
 
-        module.exports.getTestsForProject(
+        projecthelper.getTestsForProject(
           projectsDir,
           projectIdentifier,
           function(err, tests) {
@@ -62,10 +60,7 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       })
     },
     lambdaPostRunTest: function(event, context) {
-      console.log(event)
-      console.log(process.env)
-
-      let pathParameters = event.pathParameters || {
+      const pathParameters = event.pathParameters || {
         projectId: '',
         testId: ''
       }
@@ -77,11 +72,10 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
 
       const testResultsBucket = process.env.TEST_RESULTS_BUCKET
 
-      project.runTest(
+      projecthelper.runTest(
         projectsDir,
         projectIdentifier,
         testIdentifier,
-        accessKey,
         function(err, res) {
           if (err) return failureResponse(context, err)
 
