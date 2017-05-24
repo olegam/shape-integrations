@@ -13,8 +13,6 @@ module.exports = {
         if (err) return callback(err, { ok: false, err: err })
         if (!res.ok) return callback(null, { ok: false, err: res })
 
-        console.log(res.body)
-
         const validator = new Ajv()
         const schema = {
           properties: {

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "lint": "prettier --no-semi --single-quote --write index.js projects/**/*.js",
-    "test": "mocha tests/*.js"
+    "test": "LOCAL=true mocha --timeout 10000 tests/*.js"
   },
   "author": "Ole Gammelgaard Poulsen",
   "license": "MIT",

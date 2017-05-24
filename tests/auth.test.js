@@ -77,52 +77,48 @@ describe('lambdaGetProjectDetails', () => {
 })
 
 describe('lambdaPostRunTest', () => {
-  describe('allAccessPassword', () => {
-    it('should grant access', done => {
-      process.env.ALL_ACCESS_PASSWORD = 'test123'
-      lambda.execute({
-        event: {
-          pathParameters: {
-            accessKey: 'test123',
-            projectId: 'jsonplaceholder',
-            testId: 'users'
-          }
-        },
-        lambdaHandler: 'lambdaPostRunTest',
-        lambdaPath: path.join('lambda.js'),
-        callback: function(err, data) {
-          if (err) {
-            assert.equal(err, false)
-          } else {
-            assert.equal(data.statusCode, 200)
-          }
-          done()
+  it('allAccessPassword should grant access', done => {
+    process.env.ALL_ACCESS_PASSWORD = 'test123'
+    lambda.execute({
+      event: {
+        pathParameters: {
+          accessKey: 'test123',
+          projectId: 'jsonplaceholder',
+          testId: 'users'
         }
-      })
+      },
+      lambdaHandler: 'lambdaPostRunTest',
+      lambdaPath: path.join('lambda.js'),
+      callback: function(err, data) {
+        if (err) {
+          assert.equal(err, false)
+        } else {
+          assert.equal(data.statusCode, 201)
+        }
+        done()
+      }
     })
   })
 
-  describe('project specific password', () => {
-    it('should grant access', done => {
-      lambda.execute({
-        event: {
-          pathParameters: {
-            accessKey: 'test123',
-            projectId: 'jsonplaceholder',
-            testId: 'users'
-          }
-        },
-        lambdaHandler: 'lambdaPostRunTest',
-        lambdaPath: path.join('lambda.js'),
-        callback: function(err, data) {
-          if (err) {
-            assert.equal(err, false)
-          } else {
-            assert.equal(data.statusCode, 200)
-          }
-          done()
+  it('project specific password should grant access', done => {
+    lambda.execute({
+      event: {
+        pathParameters: {
+          accessKey: 'test123',
+          projectId: 'jsonplaceholder',
+          testId: 'users'
         }
-      })
+      },
+      lambdaHandler: 'lambdaPostRunTest',
+      lambdaPath: path.join('lambda.js'),
+      callback: function(err, data) {
+        if (err) {
+          assert.equal(err, false)
+        } else {
+          assert.equal(data.statusCode, 201)
+        }
+        done()
+      }
     })
   })
 })
