@@ -42,8 +42,6 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
           )
         }
 
-        console.log(project)
-
         accessValidation(
           pathParameters.accessKey,
           process.env.ALL_ACCESS_PASSWORD,
@@ -77,19 +75,11 @@ module.exports.makeLambdaHandlers = function(projectsDir) {
       const testIdentifier = pathParameters.testId
       console.log('testIdentifier:', testIdentifier)
       const accessKey = pathParameters.accessKey
-
       const testResultsBucket = process.env.TEST_RESULTS_BUCKET
 
       const projectDescriptor = projectHelper.getProjectDescriptor(
         projectsDir,
         projectIdentifier
-      )
-
-      console.error(
-        '[Error]',
-        pathParameters.accessKey,
-        projectDescriptor.accessKey,
-        process.env.ALL_ACCESS_PASSWORD
       )
 
       accessValidation(

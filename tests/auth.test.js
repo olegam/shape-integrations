@@ -24,6 +24,7 @@ describe('lambda functions', () => {
   beforeEach(() => {
     delete process.env.ALL_ACCESS_PASSWORD
   })
+
   describe('lambdaGetAllProjects', () => {
     it('allAccessPassword should grant access', done => {
       process.env.ALL_ACCESS_PASSWORD = 'test1'
@@ -42,10 +43,12 @@ describe('lambda functions', () => {
   describe('lambdaGetProjectDetails', () => {
     it('allAccessPassword should grant access', done => {
       process.env.ALL_ACCESS_PASSWORD = 'test12'
+
       const params = {
         accessKey: 'test12',
         projectId: 'jsonplaceholder'
       }
+
       lambdaExecute('lambdaGetProjectDetails', params, function(err, data) {
         assert.equal(data.statusCode, 200)
         done()
@@ -57,6 +60,7 @@ describe('lambda functions', () => {
         accessKey: 'testjson',
         projectId: 'jsonplaceholder'
       }
+
       lambdaExecute('lambdaGetProjectDetails', params, function(err, data) {
         assert.equal(data.statusCode, 200)
         done()
@@ -86,6 +90,7 @@ describe('lambda functions', () => {
         projectId: 'jsonplaceholder',
         testId: 'users'
       }
+
       lambdaExecute('lambdaPostRunTest', params, function(err, data) {
         assert.equal(data.statusCode, 201)
         done()
@@ -98,6 +103,7 @@ describe('lambda functions', () => {
         projectId: 'jsonplaceholder',
         testId: 'users'
       }
+
       lambdaExecute('lambdaPostRunTest', params, function(err, data) {
         assert.equal(data.statusCode, 201)
         done()
