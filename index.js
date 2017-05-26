@@ -1,137 +1,86 @@
-'use strict'
+const path = require("path")
+const fs = require("fs")
 
-const fs = require('fs')
-const path = require('path')
-const aws = require('aws-sdk')
-const s3 = new aws.S3()
+module.exports.getAllProjects = function(projectsDir, callback) {
+  const getSubDirNames = p =>
+    fs.readdirSync(p).filter(f => fs.statSync(p + "/" + f).isDirectory())
+  const projectIdentifiers = getSubDirNames(projectsDir)
+  const projectDescriptors = projectIdentifiers.map(function(identifier) {
+    const descriptorPath = path.resolve(projectsDir, identifier, "project.json")
+    let descriptor = require(descriptorPath)
+    descriptor.identifier = identifier
+    return descriptor
+  })
 
-const projectHelper = require('./lib/project')
-const request = require('./lib/request')
-const successResponse = request.successResponse
-const failureResponse = request.failureResponse
-const accessValidation = request.accessValidation
+  callback(null, projectDescriptors)
+}
 
-module.exports.makeLambdaHandlers = function(projectsDir) {
-  const handlers = {
-    lambdaGetAllProjects: function(event, context) {
-      const accessKey = (event.pathParameters || {}).accessKey
+module.exports.getProject = function(projectsDir, projectIdentifier, callback) {
+  module.exports.getAllProjects(projectsDir, function(err, projects) {
+    if (err) return callback(err)
 
-      const path = event.path
-      console.log('path:', path)
+    const project = projects.filter(p => {
+      return p.identifier === projectIdentifier
+    })[0]
 
-      projectHelper.getAllProjects(projectsDir, function(err, projects) {
-        if (err) return failureResponse(context, err)
-        successResponse(context, { projects: projects })
-      })
-    },
-    lambdaGetProjectDetails: function(event, context) {
-      const pathParameters = event.pathParameters || { projectId: '' }
-      const projectIdentifier = pathParameters.projectId.toLowerCase()
-      console.log('projectId:', projectIdentifier)
+    callback(null, project)
+  })
+}
 
-      projectHelper.getProject(projectsDir, projectIdentifier, function(
-        err,
-        project
-      ) {
-        if (err) return failureResponse(context, err)
-        if (!project) {
-          return failureResponse(
-            context,
-            new Error('Unknown project identifier: ' + projectIdentifier),
-            400
-          )
-        }
-
-        accessValidation(
-          pathParameters.accessKey,
-          process.env.ALL_ACCESS_PASSWORD,
-          project.accessKey,
-          function(err) {
-            if (err) {
-              failureResponse(context, new Error('Access denied'))
-              return
-            }
-
-            projectHelper.getTestsForProject(
-              projectsDir,
-              projectIdentifier,
-              function(err, tests) {
-                if (err) return failureResponse(context, err)
-                project.tests = tests
-                successResponse(context, project)
-              }
-            )
-          }
-        )
-      })
-    },
-    lambdaPostRunTest: function(event, context) {
-      const pathParameters = event.pathParameters || {
-        projectId: '',
-        testId: ''
-      }
-      const projectIdentifier = pathParameters.projectId.toLowerCase()
-      console.log('projectId:', projectIdentifier)
-      const testIdentifier = pathParameters.testId
-      console.log('testIdentifier:', testIdentifier)
-      const accessKey = pathParameters.accessKey
-      const testResultsBucket = process.env.TEST_RESULTS_BUCKET
-
-      const projectDescriptor = projectHelper.getProjectDescriptor(
-        projectsDir,
-        projectIdentifier
-      )
-
-      accessValidation(
-        pathParameters.accessKey,
-        process.env.ALL_ACCESS_PASSWORD,
-        projectDescriptor.accessKey,
-        function(err) {
-          if (err) {
-            failureResponse(context, new Error('Access denied'))
-            return
-          }
-
-          projectHelper.runTest(
-            projectsDir,
-            projectIdentifier,
-            testIdentifier,
-            function(err, res) {
-              if (err) return failureResponse(context, err)
-
-              const resultFolder =
-                projectIdentifier + '/' + testIdentifier + '/'
-              const resultPath = resultFolder + Date.now() + '-result.json'
-              const resultLatestPath = resultFolder + 'latest-result.json'
-
-              const saveToBucket = function(path, callback) {
-                if (process.env.LOCAL) {
-                  console.log(res)
-                  callback(null)
-                } else {
-                  s3.putObject(
-                    {
-                      Bucket: testResultsBucket,
-                      Key: path,
-                      Body: JSON.stringify(res)
-                    },
-                    callback
-                  )
-                }
-              }
-
-              saveToBucket(resultPath, function(err, putRes) {
-                if (err) return failureResponse(context, err)
-                saveToBucket(resultLatestPath, function(err, putRes) {
-                  if (err) return failureResponse(context, err)
-                  successResponse(context, res, 201)
-                })
-              })
-            }
-          )
-        }
-      )
+module.exports.getTestsForProject = function(
+  projectsDir,
+  projectIdentifier,
+  callback
+) {
+  const getFileNames = (dir, extension) =>
+    fs.readdirSync(dir).filter(f => f.endsWith(extension))
+  const testsDir = path.resolve(projectsDir, projectIdentifier, "tests")
+  const testFiles = getFileNames(testsDir, ".js")
+  const tests = testFiles.map(function(testName) {
+    const testPath = path.resolve(testsDir, testName)
+    const testModule = require(testPath)
+    let test = {
+      identifier: testName,
+      name: testModule.name,
+      description: testModule.description
     }
+
+    return test
+  })
+
+  callback(null, tests)
+}
+
+module.exports.getProjectDescriptor = function(projecstDir, projectIdentifier) {
+  const descriptorPath = path.resolve(
+    projecstDir,
+    projectIdentifier,
+    "project.json"
+  )
+  return require(descriptorPath)
+}
+
+module.exports.runTest = function(
+  projectsDir,
+  projectIdentifier,
+  testIdentifier,
+  callback
+) {
+  const testsDir = path.resolve(projectsDir, projectIdentifier, "tests")
+  const testPath = path.resolve(testsDir, testIdentifier)
+  const testModule = require(testPath)
+  const projectDescriptor = module.exports.getProjectDescriptor(
+    projectsDir,
+    projectIdentifier
+  )
+  const logger = {
+    logStatements: [],
+    logRequest: function(res) {},
+    log: function(str) {}
   }
-  return handlers
+  const startTime = Date.now()
+  testModule.testFunction(projectDescriptor, logger, function(err, res) {
+    res.duration = Date.now() - startTime
+    callback(err, res)
+  })
 }
