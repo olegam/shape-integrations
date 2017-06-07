@@ -8,12 +8,7 @@
   },
   "author": "Ole Gammelgaard Poulsen",
   "license": "MIT",
-  "dependencies": {
-    "aws-sdk": "^2.50.0",
-    "ajv": "^5.1.3",
-    "superagent": "^3.5.2"
-  },
   "devDependencies": {
-    "prettier": "^1.3.1"
+    "prettier": "^1.4.2"
   }
 }
