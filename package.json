@@ -1,7 +1,7 @@
 {
   "name": "shape-integrations-core",
   "version": "0.0.1",
-  "description": "",
+  "description": "Core functionality of shape-integrations",
   "main": "index.js",
   "scripts": {
     "lint": "prettier --no-semi --single-quote --write index.js"
