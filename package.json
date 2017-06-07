@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "lint": "prettier --no-semi --single-quote --write index.js projects/**/*.js"
+    "lint": "prettier --no-semi --single-quote --write index.js"
   },
   "author": "Ole Gammelgaard Poulsen",
   "license": "MIT",
