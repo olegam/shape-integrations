@@ -1,6 +1,7 @@
 const path = require('path')
 const fs = require('fs')
 const globalLog = require('global-request-logger')
+const intercept = require('intercept-stdout')
 
 module.exports.getAllProjects = function(projectsDir, callback) {
   const getSubDirNames = p =>
