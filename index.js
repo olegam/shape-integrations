@@ -100,7 +100,7 @@ module.exports.runTest = function(
   const startTime = Date.now()
   testModule.testFunction(projectDescriptor, logger, function(err, res) {
     const returnObj = {
-      executedAt: Date.now().toISOString(),
+      executedAt: new Date().toISOString(),
       duration: Date.now() - startTime,
       requests,
       stdout
