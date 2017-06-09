@@ -1,5 +1,6 @@
 const path = require('path')
 const fs = require('fs')
+const globalLog = require('global-request-logger')
 
 module.exports.getAllProjects = function(projectsDir, callback) {
   const getSubDirNames = p =>
@@ -69,6 +70,7 @@ module.exports.runTest = function(
   const testsDir = path.resolve(projectsDir, projectIdentifier, 'tests')
   const testPath = path.resolve(testsDir, testIdentifier)
   const testModule = require(testPath)
+  const requests = []
   const projectDescriptor = module.exports.getProjectDescriptor(
     projectsDir,
     projectIdentifier
@@ -78,9 +80,19 @@ module.exports.runTest = function(
     logRequest: function(res) {},
     log: function(str) {}
   }
+
+  globalLog.initialize()
+  globalLog.on('success', function(request, response) {
+    requests.push({ status: 'success', request, response })
+  })
+  globalLog.on('error', function(request, response) {
+    requests.push({ status: 'error', request, response })
+  })
+
   const startTime = Date.now()
   testModule.testFunction(projectDescriptor, logger, function(err, res) {
     res.duration = Date.now() - startTime
+    res.requests = requests
     callback(err, res)
   })
 }
