@@ -1,6 +1,6 @@
 {
   "name": "shape-integrations-core",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Core functionality of shape-integrations",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,7 @@
     "prettier": "^1.4.2"
   },
   "dependencies": {
-    "global-request-logger": "^0.1.1"
+    "global-request-logger": "^0.1.1",
+    "intercept-stdout": "^0.1.2"
   }
 }

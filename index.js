@@ -81,6 +81,7 @@ module.exports.runTest = function(
     log: function(str) {}
   }
 
+  // Logging request made through node HTTP
   globalLog.initialize()
   globalLog.on('success', function(request, response) {
     requests.push({ status: 'success', request, response })
@@ -89,10 +90,32 @@ module.exports.runTest = function(
     requests.push({ status: 'error', request, response })
   })
 
+  // Logging STDOUT
+  var stdout = ''
+  var unhook_intercept = intercept(function(text) {
+    stdout += text
+  })
+
   const startTime = Date.now()
   testModule.testFunction(projectDescriptor, logger, function(err, res) {
-    res.duration = Date.now() - startTime
-    res.requests = requests
+    const returnObj = {
+      executedAt: Date.now().toISOString(),
+      duration: Date.now() - startTime,
+      requests,
+      stdout
+    }
+
+    if (err) {
+      returnObj.ok = false
+      returnObj.err = err
+    } else {
+      returnObj.ok = true
+      returnObj.result = res
+    }
+
     callback(err, res)
+
+    // Undo logging of STDOUT
+    unhook_intercept()
   })
 }
