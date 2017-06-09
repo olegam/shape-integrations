@@ -114,7 +114,7 @@ module.exports.runTest = function(
       returnObj.result = res
     }
 
-    callback(err, res)
+    callback(err, returnObj)
 
     // Undo logging of STDOUT
     unhook_intercept()
