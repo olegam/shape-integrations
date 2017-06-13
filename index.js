@@ -109,12 +109,12 @@ module.exports.runTest = function(
     if (err) {
       returnObj.ok = false
       returnObj.err = err
+      callback(returnObj)
     } else {
       returnObj.ok = true
       returnObj.result = res
+      callback(null, returnObj)
     }
-
-    callback(err, returnObj)
 
     // Undo logging of STDOUT and HTTP
     unhook_intercept()
