@@ -116,7 +116,8 @@ module.exports.runTest = function(
 
     callback(err, returnObj)
 
-    // Undo logging of STDOUT
+    // Undo logging of STDOUT and HTTP
     unhook_intercept()
+    globalLog.end()
   })
 }
