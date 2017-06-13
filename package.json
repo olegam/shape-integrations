@@ -1,6 +1,6 @@
 {
   "name": "shape-integrations-core",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Core functionality of shape-integrations",
   "main": "index.js",
   "scripts": {
