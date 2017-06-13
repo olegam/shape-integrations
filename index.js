@@ -98,26 +98,42 @@ module.exports.runTest = function(
   })
 
   const startTime = Date.now()
-  testModule.testFunction(projectDescriptor, logger, function(err, res) {
-    const returnObj = {
-      executedAt: new Date().toISOString(),
-      duration: Date.now() - startTime,
-      requests,
-      stdout
-    }
 
-    if (err) {
-      returnObj.ok = false
-      returnObj.err = err
-      callback(returnObj)
-    } else {
-      returnObj.ok = true
-      returnObj.result = res
-      callback(null, returnObj)
-    }
+  try {
+    testModule.testFunction(projectDescriptor, logger, function(err, res) {
+      const response = responseFormat(startTime, requests, stdout, err, res)
 
-    // Undo logging of STDOUT and HTTP
-    unhook_intercept()
-    globalLog.end()
-  })
+      unhookGlobalListeners(globalLog, unhook_intercept)
+      callback(null, response)
+    })
+  } catch (catchErr) {
+    const response = responseFormat(startTime, requests, stdout, catchErr)
+    unhookGlobalListeners(globalLog, unhook_intercept)
+    callback(null, response)
+  }
+}
+
+const responseFormat = function(startTime, requests, stdout, err, res) {
+  const returnObj = {
+    executedAt: new Date().toISOString(),
+    duration: Date.now() - startTime,
+    requests,
+    stdout
+  }
+
+  if (err) {
+    returnObj.ok = false
+    returnObj.err = err
+  } else {
+    returnObj.ok = true
+    returnObj.result = res
+  }
+
+  return returnObj
+}
+
+const unhookGlobalListeners = function(globalLog, unhook_intercept) {
+  // Undo logging of STDOUT and HTTP
+  unhook_intercept()
+  globalLog.end()
 }

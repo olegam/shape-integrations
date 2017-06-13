@@ -9,7 +9,10 @@
   "author": "Ole Gammelgaard Poulsen",
   "license": "MIT",
   "devDependencies": {
-    "prettier": "^1.4.2"
+    "ajv": "^5.1.5",
+    "prettier": "^1.4.4",
+    "superagent": "^3.5.2",
+    "tape": "^4.6.3"
   },
   "dependencies": {
     "global-request-logger": "^0.1.1",
