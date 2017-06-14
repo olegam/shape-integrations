@@ -16,7 +16,7 @@
     "tape": "^4.6.3"
   },
   "dependencies": {
-    "global-request-logger": "^0.1.1",
+    "global-request-logger": "github:ronayadid/global-request-logger",
     "intercept-stdout": "^0.1.2"
   }
 }
