@@ -26,9 +26,12 @@ const schema = {
     },
     stdout: {
       type: 'string'
+    },
+    code: {
+      type: 'string'
     }
   },
-  required: ['ok', 'duration', 'requests', 'executedAt', 'stdout'],
+  required: ['ok', 'duration', 'requests', 'executedAt', 'stdout', 'code'],
   oneOf: [
     { required: ['err'], type: 'object' },
     { required: ['result'], type: 'object' }

@@ -101,24 +101,38 @@ module.exports.runTest = function(
 
   try {
     testModule.testFunction(projectDescriptor, logger, function(err, res) {
-      const response = responseFormat(startTime, requests, stdout, err, res)
+      const response = responseFormat(
+        startTime,
+        requests,
+        stdout,
+        testModule.testFunction,
+        err,
+        res
+      )
 
       unhookGlobalListeners(globalLog, unhook_intercept)
       callback(null, response)
     })
   } catch (catchErr) {
-    const response = responseFormat(startTime, requests, stdout, catchErr)
+    const response = responseFormat(
+      startTime,
+      requests,
+      stdout,
+      testModule.testFunction,
+      catchErr
+    )
     unhookGlobalListeners(globalLog, unhook_intercept)
     callback(null, response)
   }
 }
 
-const responseFormat = function(startTime, requests, stdout, err, res) {
+const responseFormat = function(startTime, requests, stdout, func, err, res) {
   const returnObj = {
     executedAt: new Date().toISOString(),
     duration: Date.now() - startTime,
     requests,
-    stdout
+    stdout,
+    code: func.toString()
   }
 
   if (err) {
