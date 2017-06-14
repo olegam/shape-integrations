@@ -6,7 +6,7 @@ const Ajv = require('ajv')
 module.exports = {
   name: 'GET users',
   description: 'Fail testing getting the users',
-  testFunction: function(context, logger, callback) {
+  testFunction: function(context, callback) {
     throw new Error('test error')
   }
 }

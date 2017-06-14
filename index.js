@@ -76,11 +76,6 @@ module.exports.runTest = function(
     projectsDir,
     projectIdentifier
   )
-  const logger = {
-    logStatements: [],
-    logRequest: function(res) {},
-    log: function(str) {}
-  }
 
   // Logging request made through node HTTP
   globalLog.initialize()
@@ -100,7 +95,7 @@ module.exports.runTest = function(
   const startTime = Date.now()
 
   try {
-    testModule.testFunction(projectDescriptor, logger, function(err, res) {
+    testModule.testFunction(projectDescriptor, function(err, res) {
       const response = responseFormat(
         startTime,
         requests,

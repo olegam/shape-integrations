@@ -6,7 +6,7 @@ const Ajv = require('ajv')
 module.exports = {
   name: 'GET users',
   description: 'Tests getting the users',
-  testFunction: function(context, logger, callback) {
+  testFunction: function(context, callback) {
     request
       .get('https://jsonplaceholder.typicode.com/users')
       .end(function(err, res) {
