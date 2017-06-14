@@ -127,15 +127,14 @@ const responseFormat = function(startTime, requests, stdout, func, err, res) {
     duration: Date.now() - startTime,
     requests,
     stdout,
-    code: func.toString()
+    code: func.toString(),
+    ok: true,
+    result: res
   }
 
   if (err) {
     returnObj.ok = false
     returnObj.err = err
-  } else {
-    returnObj.ok = true
-    returnObj.result = res
   }
 
   return returnObj
