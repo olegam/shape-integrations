@@ -4,7 +4,8 @@
   "description": "Core functionality of shape-integrations",
   "main": "index.js",
   "scripts": {
-    "lint": "prettier --no-semi --single-quote --write index.js"
+    "lint": "prettier --no-semi --single-quote --write index.js",
+    "test": "tape 'tests/**/*.js'"
   },
   "author": "Ole Gammelgaard Poulsen",
   "license": "MIT",
