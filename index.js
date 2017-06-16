@@ -3,6 +3,10 @@ const fs = require('fs')
 const globalLog = require('global-request-logger')
 const intercept = require('intercept-stdout')
 
+if (!globalLog.isEnabled) {
+  globalLog.initialize()
+}
+
 module.exports.getAllProjects = function(projectsDir, callback) {
   const getSubDirNames = p =>
     fs.readdirSync(p).filter(f => fs.statSync(p + '/' + f).isDirectory())
@@ -78,7 +82,6 @@ module.exports.runTest = function(
   )
 
   // Logging request made through node HTTP
-  globalLog.initialize()
   globalLog.on('success', function(request, response) {
     requests.push({ status: 'success', request, response })
   })
@@ -143,5 +146,4 @@ const responseFormat = function(startTime, requests, stdout, func, err, res) {
 const unhookGlobalListeners = function(globalLog, unhook_intercept) {
   // Undo logging of STDOUT and HTTP
   unhook_intercept()
-  globalLog.end()
 }
