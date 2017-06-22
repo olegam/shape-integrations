@@ -1,7 +1,6 @@
 const path = require('path')
 const fs = require('fs')
-const globalLog = require('global-request-logger')
-const intercept = require('intercept-stdout')
+const fork = require('child_process').fork
 
 module.exports.getAllProjects = function(projectsDir, callback) {
   const getSubDirNames = p =>
@@ -70,78 +69,19 @@ module.exports.runTest = function(
 ) {
   const testsDir = path.resolve(projectsDir, projectIdentifier, 'tests')
   const testPath = path.resolve(testsDir, testIdentifier)
-  const testModule = require(testPath)
-  const requests = []
   const projectDescriptor = module.exports.getProjectDescriptor(
     projectsDir,
     projectIdentifier
   )
 
-  // Logging request made through node HTTP
-  globalLog.initialize()
-  globalLog.on('success', function(request, response) {
-    requests.push({ status: 'success', request, response })
-  })
-  globalLog.on('error', function(request, response) {
-    requests.push({ status: 'error', request, response })
+  const executor = fork(`${__dirname}/test_runner.js`)
+
+  executor.send({
+    descriptor: projectDescriptor,
+    testPath
   })
 
-  // Logging STDOUT
-  var stdout = ''
-  var unhook_intercept = intercept(function(text) {
-    stdout += text
+  executor.on('message', message => {
+    callback(null, message)
   })
-
-  const startTime = Date.now()
-
-  try {
-    testModule.testFunction(projectDescriptor, function(err, res) {
-      const response = responseFormat(
-        startTime,
-        requests,
-        stdout,
-        testModule.testFunction,
-        err,
-        res
-      )
-
-      unhookGlobalListeners(globalLog, unhook_intercept)
-      callback(null, response)
-    })
-  } catch (catchErr) {
-    const response = responseFormat(
-      startTime,
-      requests,
-      stdout,
-      testModule.testFunction,
-      catchErr
-    )
-    unhookGlobalListeners(globalLog, unhook_intercept)
-    callback(null, response)
-  }
-}
-
-const responseFormat = function(startTime, requests, stdout, func, err, res) {
-  const returnObj = {
-    executedAt: new Date().toISOString(),
-    duration: Date.now() - startTime,
-    requests,
-    stdout,
-    code: func.toString(),
-    ok: true,
-    result: res
-  }
-
-  if (err) {
-    returnObj.ok = false
-    returnObj.err = err
-  }
-
-  return returnObj
-}
-
-const unhookGlobalListeners = function(globalLog, unhook_intercept) {
-  // Undo logging of STDOUT and HTTP
-  unhook_intercept()
-  globalLog.end()
 }

@@ -31,7 +31,7 @@ const schema = {
       type: 'string'
     }
   },
-  required: ['ok', 'duration', 'requests', 'executedAt', 'stdout', 'code'],
+  required: ['ok', 'duration', 'requests', 'executedAt', 'code'],
   oneOf: [
     { required: ['err'], type: 'object' },
     { required: ['result'], type: 'object' }
