@@ -6,14 +6,24 @@ module.exports.getAllProjects = function(projectsDir, callback) {
   const getSubDirNames = p =>
     fs.readdirSync(p).filter(f => fs.statSync(p + '/' + f).isDirectory())
   const projectIdentifiers = getSubDirNames(projectsDir)
-  const projectDescriptors = projectIdentifiers.map(function(identifier) {
-    const descriptorPath = path.resolve(projectsDir, identifier, 'project.json')
-    let descriptor = require(descriptorPath)
-    descriptor.identifier = identifier
-    return descriptor
-  })
 
-  callback(null, projectDescriptors)
+  try {
+    const projectDescriptors = projectIdentifiers.map(function(identifier) {
+      const descriptorPath = path.resolve(
+        projectsDir,
+        identifier,
+        'project.json'
+      )
+
+      descriptor = require(descriptorPath)
+      descriptor.identifier = identifier
+      return descriptor
+    })
+
+    callback(null, projectDescriptors)
+  } catch (err) {
+    return callback(err)
+  }
 }
 
 module.exports.getProject = function(projectsDir, projectIdentifier, callback) {
@@ -33,32 +43,45 @@ module.exports.getTestsForProject = function(
   projectIdentifier,
   callback
 ) {
-  const getFileNames = (dir, extension) =>
-    fs.readdirSync(dir).filter(f => f.endsWith(extension))
-  const testsDir = path.resolve(projectsDir, projectIdentifier, 'tests')
-  const testFiles = getFileNames(testsDir, '.js')
-  const tests = testFiles.map(function(testName) {
-    const testPath = path.resolve(testsDir, testName)
-    const testModule = require(testPath)
-    let test = {
-      identifier: testName,
-      name: testModule.name,
-      description: testModule.description
-    }
+  try {
+    const getFileNames = (dir, extension) =>
+      fs.readdirSync(dir).filter(f => f.endsWith(extension))
+    const testsDir = path.resolve(projectsDir, projectIdentifier, 'tests')
+    const testFiles = getFileNames(testsDir, '.js')
 
-    return test
-  })
+    const tests = testFiles.map(function(testName) {
+      const testPath = path.resolve(testsDir, testName)
+      const testModule = require(testPath)
+      let test = {
+        identifier: testName,
+        name: testModule.name,
+        description: testModule.description
+      }
 
-  callback(null, tests)
+      return test
+    })
+
+    callback(null, tests)
+  } catch (err) {
+    callback(err)
+  }
 }
 
-module.exports.getProjectDescriptor = function(projecstDir, projectIdentifier) {
+module.exports.getProjectDescriptor = function(
+  projecstDir,
+  projectIdentifier,
+  callback
+) {
   const descriptorPath = path.resolve(
     projecstDir,
     projectIdentifier,
     'project.json'
   )
-  return require(descriptorPath)
+  try {
+    callback(null, require(descriptorPath))
+  } catch (err) {
+    callback(err)
+  }
 }
 
 module.exports.runTest = function(
@@ -71,17 +94,19 @@ module.exports.runTest = function(
   const testPath = path.resolve(testsDir, testIdentifier)
   const projectDescriptor = module.exports.getProjectDescriptor(
     projectsDir,
-    projectIdentifier
+    projectIdentifier,
+    function(err, descriptor) {
+      if (err) return callback(err)
+      const executor = fork(`${__dirname}/test_runner.js`)
+
+      executor.send({
+        descriptor,
+        testPath
+      })
+
+      executor.on('message', res => {
+        callback(res.err, res.result)
+      })
+    }
   )
-
-  const executor = fork(`${__dirname}/test_runner.js`)
-
-  executor.send({
-    descriptor: projectDescriptor,
-    testPath
-  })
-
-  executor.on('message', message => {
-    callback(null, message)
-  })
 }

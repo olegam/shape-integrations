@@ -2,7 +2,15 @@ console.error('fork running')
 const globalLog = require('global-request-logger')
 
 process.on('message', opt => {
-  const testModule = require(opt.testPath)
+  let testModule
+
+  try {
+    testModule = require(opt.testPath)
+  } catch (err) {
+    console.log('require error', err)
+    return disconnectMessage(err)
+  }
+
   const testFunction = testModule.testFunction
   const projectDescriptor = opt.descriptor
   const requests = []
@@ -21,21 +29,24 @@ process.on('message', opt => {
 
   try {
     testFunction(projectDescriptor, function(err, res) {
-      console.log('func exec')
+      console.log('fork func exec')
       response = responseFormat(startTime, requests, testFunction, err, res)
       globalLog.end()
-      process.send(response, () => {
-        process.disconnect()
-      })
+      disconnectMessage(null, response)
     })
   } catch (catchErr) {
+    console.log('fork func error')
     response = responseFormat(startTime, requests, testFunction, catchErr)
     globalLog.end()
-    process.send(response, () => {
-      process.disconnect()
-    })
+    disconnectMessage(null, response)
   }
 })
+
+const disconnectMessage = function(err, result) {
+  process.send({ err, result }, () => {
+    process.disconnect()
+  })
+}
 
 const responseFormat = function(startTime, requests, func, err, res) {
   const returnObj = {

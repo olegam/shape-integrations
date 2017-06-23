@@ -44,7 +44,7 @@ const responseValidator = function(response) {
   return ajv.errors
 }
 
-test('passed test', function(t) {
+test('run passed test', function(t) {
   t.plan(1)
 
   index.runTest(projectDir, projectIdentifier, passed, (err, result) => {
@@ -66,7 +66,7 @@ test('passed test', function(t) {
   })
 })
 
-test('failed test', function(t) {
+test('run failed test', function(t) {
   t.plan(2)
 
   index.runTest(projectDir, projectIdentifier, failed, (err, result) => {
@@ -75,19 +75,26 @@ test('failed test', function(t) {
   })
 })
 
-test('failed test', function(t) {
-  t.plan(2)
-
-  index.runTest(projectDir, projectIdentifier, failed, (err, result) => {
-    t.equal(responseValidator(result), null)
-    t.equal(result.ok, false)
-  })
-})
-
-test('crashed test', function(t) {
+test('run crashed test', function(t) {
   t.plan(1)
 
   index.runTest(projectDir, projectIdentifier, throws, (err, result) => {
     t.equal(responseValidator(result), null)
+  })
+})
+
+test('run invalid project path', t => {
+  t.plan(1)
+
+  index.runTest('./', projectIdentifier, passed, (err, result) => {
+    t.equal(err.code, 'MODULE_NOT_FOUND')
+  })
+})
+
+test('run invalid test identifier', t => {
+  t.plan(1)
+
+  index.runTest(projectDir, 'asd', passed, (err, result) => {
+    t.equal(err.code, 'MODULE_NOT_FOUND')
   })
 })
