@@ -1,4 +1,3 @@
-console.error('fork running')
 const globalLog = require('global-request-logger')
 
 process.on('message', opt => {
@@ -7,7 +6,6 @@ process.on('message', opt => {
   try {
     testModule = require(opt.testPath)
   } catch (err) {
-    console.log('require error', err)
     return disconnectMessage(err)
   }
 
@@ -29,13 +27,11 @@ process.on('message', opt => {
 
   try {
     testFunction(projectDescriptor, function(err, res) {
-      console.log('fork func exec')
       response = responseFormat(startTime, requests, testFunction, err, res)
       globalLog.end()
       disconnectMessage(null, response)
     })
   } catch (catchErr) {
-    console.log('fork func error')
     response = responseFormat(startTime, requests, testFunction, catchErr)
     globalLog.end()
     disconnectMessage(null, response)
